@@ -2,6 +2,19 @@ FROM breakpad:latest
 
 # RUN rpm -Uvh http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 # RUN yum -y install python36 python36-pip dos2unix git
+RUN python3 -m pip install flask\
+ flask-admin\
+ flask-mongoengine\
+ flask-httpauth\
+ flask-security\
+ redis\
+ celery==4.4.7\
+ python-dateutil\
+ gunicorn\
+ requests\
+ raven\
+ email_validator
+
 
 # workdir and user
 WORKDIR /OopsyPad
