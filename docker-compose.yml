@@ -7,6 +7,12 @@ services:
     ports:
       - "27017:27017"
 
+  breakpad:
+    build:
+      context: .
+      dockerfile: ./breakpad.Dockerfile
+    image: breakpad
+
   oopsypad:
     build:
       context: .
@@ -20,3 +26,4 @@ services:
       - CELERY_RESULT_BACKEND=mongodb://mongo
     depends_on:
       - mongo
+      - breakpad
