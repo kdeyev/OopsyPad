@@ -5,7 +5,16 @@
         pre {
             background-color: transparent;
             border: none;
+        }
 
+        .stacktrace {
+            max-height: 100px;
+            overflow-y: scroll;
+            cursor: pointer;
+        }
+
+        .stacktrace.expanded {
+            max-height: none;
         }
     </style>
     <h3>Crash Report Details</h3>
@@ -145,7 +154,7 @@
             </thead>
                 <tr>
                     <td class="col-stacktrace">
-                        <pre>{{ minidump.stacktrace_json | tojson_pretty }}</pre>
+                        <pre class="stacktrace" title="Click to expand/collapse">{{ minidump.stacktrace_json | tojson_pretty }}</pre>
                     </td>
                 </tr>
         </table>
@@ -161,9 +170,19 @@
             </thead>
                 <tr>
                     <td class="col-stacktrace">
-                        <pre>{{ minidump.stacktrace }}</pre>
+                        <pre class="stacktrace" title="Click to expand/collapse">{{ minidump.stacktrace }}</pre>
                     </td>
                 </tr>
         </table>
     </div>
+
+    {% block tail %}
+        {{ super() }}
+        <script>
+            $('.stacktrace').click(function () {
+                console.log($(this));
+                $(this).toggleClass('expanded');
+            });
+        </script>
+    {% endblock %}
 {% endblock %}
