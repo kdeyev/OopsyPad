@@ -9,7 +9,7 @@
         }
 
         .stacktrace {
-            max-height: 300px;
+            max-height: 100px;
             overflow-y: scroll;
             cursor: pointer;
         }
@@ -67,6 +67,11 @@
             <thead>
             <tr>
                 <th>Time</th>
+                <th>Product</th>
+                <th>Version</th>
+                <th>Platform</th>
+                <th>Reason</th>
+                <th>Location</th>
                 <th>Actions</th>
                 <th>Stack Trace</th>
             </tr>
@@ -74,13 +79,18 @@
             {% for minidump in minidumps.items %}
                 <tr>
                     <td class="col-time">{{ minidump.get_time() }}</td>
+                    <td>{{ minidump.product }}</td>
+                    <td>{{ minidump.version }}</td>
+                    <td>{{ minidump.platform }}</td>
+                    <td>{{ minidump.crash_reason }}</td>
+                    <td>{{ minidump.crash_location }}</td>
                     <td>
-                        <a href="{{ minidump.download_link }}" class="btn btn-default">Download Minidump</a>
+                        <p><a href="{{ minidump.download_link }}" class="btn btn-default">Download Minidump</a></p>
+                        <p><a href="{{ minidump.details_link }}" class="btn btn-default">View</a></p>
                     </td>
                     <td class="col-stacktrace">
                         <pre class="stacktrace" title="Click to expand/collapse">{{ minidump.stacktrace }}</pre>
                     </td>
-
                 </tr>
             {% else %}
                 <tr>

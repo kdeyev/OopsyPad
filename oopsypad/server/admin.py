@@ -243,7 +243,7 @@ class CrashReportView(DeveloperModelView):
 
         minidump = models.Minidump.objects(id=minidump_id).first()
         if not minidump:
-            flash('Issue not found.')
+            flash('Report not found.')
             return redirect(self.get_url('.index_view'))
 
         return self.render('admin/crash_report_details.html',

@@ -60,6 +60,87 @@ class User(mongo.Document, UserMixin):
         return super().save(**kwargs)
 
 
+class Issue(mongo.Document):
+    product = fields.StringField()
+
+    version = fields.StringField()
+
+    platform = fields.StringField()
+
+    reason = fields.StringField()
+
+    location = fields.StringField()
+
+    signature = fields.StringField()
+
+    total = fields.IntField(default=1)
+
+    meta = {
+        'indexes': [
+            'product',
+            ('product', 'version', 'platform', 'reason', 'location', 'signature')
+        ],
+        'ordering': ['-total']
+    }
+
+    @property
+    def last_seen(self):
+        minidump = self.get_minidumps().only('date_created').order_by(
+            '-date_created').first()
+        if minidump:
+            return minidump.date_created
+
+    @property
+    def avg_uptime(self):
+        minidumps = self.get_minidumps().filter(process_uptime__exists=True)
+        if minidumps:
+            return int(minidumps.average('process_uptime'))
+        return 0
+
+    def resolve_issue(self):
+        minidumps = self.get_minidumps()
+        for minidump in minidumps:
+            minidump.remove_minidump()
+        self.delete()
+
+    def get_minidumps(self):
+        minidumps = Minidump.objects(
+            issue=self,
+        )
+        return minidumps
+
+    @classmethod
+    def create_or_update_issue(cls, product, version, platform, reason,
+                               location, signature):
+        issue = cls.objects(product=product,
+                            version=version,
+                            platform=platform,
+                            reason=reason,
+                            location=location,
+                            signature=signature).first()
+        if issue:
+            issue.total += 1
+        else:
+            issue = cls(product=product,
+                        version=version,
+                        platform=platform,
+                        reason=reason,
+                        location=location,
+                        signature=signature)
+        issue.save()
+        return issue
+
+    @classmethod
+    def get_top_n_project_issues(cls, n, project_name):
+        return cls.objects(product=project_name)[:n]
+
+    def __str__(self):
+        return 'Issue: {} {} {} {} {} {} {}'.format(
+            self.product, self.version, self.platform, self.reason,
+            self.location, self.total,
+            self.last_seen.strftime('%d-%m-%Y %H:%M'))
+
+
 class Minidump(mongo.Document):
     product = fields.StringField()  # Crashed application name
 
@@ -87,6 +168,8 @@ class Minidump(mongo.Document):
 
     signature = fields.StringField()
 
+    issue = fields.ReferenceField(Issue)
+
     process_uptime = fields.IntField(default=0)
 
     crash_thread = fields.IntField()
@@ -108,6 +191,11 @@ class Minidump(mongo.Document):
     def download_link(self):
         return url_for('crash-reports.download_minidump',
                        minidump_id=str(self.minidump.grid_id))
+
+    @property
+    def details_link(self):
+        return url_for('crash-reports.details_view',
+                       id=self.id)
 
     def save_minidump_file(self, minidump_file):
         if not os.path.isdir(DUMPS_DIR):
@@ -189,12 +277,16 @@ class Minidump(mongo.Document):
 
             self.parse_process_uptime()
 
-            Issue.create_or_update_issue(product=self.product,
+            issue = Issue.create_or_update_issue(product=self.product,
                                          version=self.version,
                                          platform=self.platform,
                                          reason=self.crash_reason,
                                          location=self.crash_location,
                                          signature=self.signature)
+
+            self.issue = issue
+            self.save()
+
         except (subprocess.CalledProcessError, IndexError) as e:
             current_app.logger.exception(
                 'Cannot parse stacktrace: {}'.format(e))
@@ -445,87 +537,3 @@ class Project(mongo.Document):
                 self.min_version if self.min_version else '~no min version',
                 ', '.join([p.name for p in self.allowed_platforms])
                 if self.allowed_platforms else '~no allowed platforms')
-
-
-class Issue(mongo.Document):
-    product = fields.StringField()
-
-    version = fields.StringField()
-
-    platform = fields.StringField()
-
-    reason = fields.StringField()
-
-    location = fields.StringField()
-
-    signature = fields.StringField()
-
-    total = fields.IntField(default=1)
-
-    meta = {
-        'indexes': [
-            'product',
-            ('product', 'version', 'platform', 'reason', 'location', 'signature')
-        ],
-        'ordering': ['-total']
-    }
-
-    @property
-    def last_seen(self):
-        minidump = self.get_minidumps().only('date_created').order_by(
-            '-date_created').first()
-        if minidump:
-            return minidump.date_created
-
-    @property
-    def avg_uptime(self):
-        minidumps = self.get_minidumps().filter(process_uptime__exists=True)
-        if minidumps:
-            return int(minidumps.average('process_uptime'))
-        return 0
-
-    def resolve_issue(self):
-        minidumps = self.get_minidumps()
-        for minidump in minidumps:
-            minidump.remove_minidump()
-        self.delete()
-
-    def get_minidumps(self):
-        minidumps = Minidump.objects(
-            product=self.product,
-            version=self.version,
-            platform=self.platform,
-            crash_reason=self.reason,
-            crash_location=self.location
-        )
-        return minidumps
-
-    @classmethod
-    def create_or_update_issue(cls, product, version, platform, reason,
-                               location, signature):
-        issue = cls.objects(product=product,
-                            version=version,
-                            platform=platform,
-                            reason=reason,
-                            location=location,
-                            signature=signature).first()
-        if issue:
-            issue.total += 1
-        else:
-            issue = cls(product=product,
-                        version=version,
-                        platform=platform,
-                        reason=reason,
-                        location=location)
-        issue.save()
-        return issue
-
-    @classmethod
-    def get_top_n_project_issues(cls, n, project_name):
-        return cls.objects(product=project_name)[:n]
-
-    def __str__(self):
-        return 'Issue: {} {} {} {} {} {} {}'.format(
-            self.product, self.version, self.platform, self.reason,
-            self.location, self.total,
-            self.last_seen.strftime('%d-%m-%Y %H:%M'))
