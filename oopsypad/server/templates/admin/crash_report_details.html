@@ -44,20 +44,103 @@
         </tbody>
     </table>
 
-    <h3>Stack Trace</h3>
+    <h3>System info</h3>
+    {% if minidump.stacktrace_json.system_info %}
+        <table id="system-info" class="table table-hover">
+            <tbody>
+            {% for key, value in minidump.stacktrace_json.system_info.items() %}
+                <tr>
+                    <td>{{ key }}</td>
+                    <td><b>{{ value }}</b></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-warning">No System info</div>
+    {% endif %}
+
+    <h3>StackTrace</h3>
+        {% if minidump.stacktrace_json.crashing_thread is defined %}
+            <table id="stack-trace-table" class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Module</th>
+                        <th>Function</th>
+                        <th>File</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for frame in minidump.stacktrace_json.crashing_thread.frames %}
+                    <tr>
+                        <td>{{ frame.module }}</td>
+                        <td>{{ frame.function }}</td>
+                        <td>{{ frame.file }}:{{ frame["line"] }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="alert alert-warning">No crashing thread</div>
+        {% endif %}
+
+    <h3>Loaded modules</h3>
+    <table id="modules-table" class="table table-hover">
+        <thead>
+            <tr>
+                <th>Module</th>
+                <th>Version</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for module in minidump.stacktrace_json.modules %}
+            <tr>
+                <td>{{ module.filename }}</td>
+                <td><b>{{ module.version }}</b></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Other threads</h3>
+    {% for thread in minidump.stacktrace_json.threads %}
+        {% if loop.index - 1 != minidump.stacktrace_json.crash_info.crashing_thread %}
+        <h4> Thread #{{ loop.index - 1 }}</h4>
+        <table id="thread-#{{ loop.index - 1 }}-table" class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Module</th>
+                    <th>Function</th>
+                    <th>File</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for frame in thread.frames %}
+                <tr>
+                    <td>{{ frame.module }}</td>
+                    <td>{{ frame.function }}</td>
+                    <td>{{ frame.file }}:{{ frame["line"] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-warning">No other threads</div>
+        {% endif %}
+    {% endfor %}
+
+    <h3>Raw Stack Trace</h3>
     <div class="table-responsive">
-        <table id="stacktraces-table" class="table table-striped table-bordered table-hover">
+        <table id="raw-stacktraces-table" class="table table-striped table-bordered table-hover">
             <thead>
             <tr>
-                <th>Stack Trace</th>
+                <th>Raw Stack Trace</th>
             </tr>
             </thead>
-            
                 <tr>
                     <td class="col-stacktrace">
-                        <pre title="Click to expand/collapse">{{ minidump.stacktrace }}</pre>
+                        <pre>{{ minidump.stacktrace }}</pre>
                     </td>
-
                 </tr>
         </table>
     </div>

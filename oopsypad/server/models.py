@@ -245,8 +245,7 @@ class Minidump(mongo.Document):
 
         self.crash_location = last_call
         self.signature = signature
-
-
+               
     def create_stacktrace(self):
         from oopsypad.server.worker import process_minidump
         process_minidump(str(self.id))
