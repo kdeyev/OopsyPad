@@ -6,7 +6,7 @@ RUN yum -y install python36 python36-pip dos2unix git
 RUN yum -y install gcc gcc-c++ make libcurl-devel
 
 # workdir and user
-WORKDIR /OopsyPad
+WORKDIR /oopsypad
 # USER 0
 
 COPY . .
@@ -18,3 +18,5 @@ RUN git submodule update --init --recursive
 # Install dependencies
 RUN dos2unix ./3rdparty/build.sh
 RUN ./3rdparty/build.sh
+
+RUN cp -rf /oopsypad/oopsypad/bin/ /breakpad

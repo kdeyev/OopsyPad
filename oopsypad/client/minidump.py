@@ -36,3 +36,6 @@ def send_crash_report(address, dump_path, product, version, platform):
         response = requests.post(
             '{}/crash-report'.format(address), data=data, files=files)
     return response
+
+if __name__ == '__main__':
+    oopsy_crash_report()

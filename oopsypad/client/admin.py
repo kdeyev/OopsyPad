@@ -89,3 +89,6 @@ def oopsy_admin_project_list(ctx):
         click.echo(response.reason.capitalize())
     else:
         click.echo(response.json().get('error', 'ERROR'))
+
+if __name__ == '__main__':
+    oopsy_admin()

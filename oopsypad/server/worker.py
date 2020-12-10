@@ -105,3 +105,6 @@ def oopsy_celery_worker_logs(number):
                 click.echo(line)
     except OSError:
         click.echo('No logfile found.')
+
+if __name__ == '__main__':
+    oopsy_celery_worker()

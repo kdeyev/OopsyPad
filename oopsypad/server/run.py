@@ -26,3 +26,6 @@ def oopsy_run_server(host, port, workers, gunicorn_options):
                     '-w {}'.format(workers),
                     '-b {}:{}'.format(host, port),
                     'oopsypad.server.run:app'] + list(gunicorn_options))
+
+if __name__ == '__main__':
+    oopsy_run_server()

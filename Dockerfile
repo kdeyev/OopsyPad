@@ -17,21 +17,31 @@ RUN python3 -m pip install flask\
 
 
 # workdir and user
-WORKDIR /OopsyPad
+WORKDIR /oopsypad
 # USER 0
 
 COPY . .
+RUN cp -rf  /breakpad/* /oopsypad/oopsypad/bin/
 
-# install OopsyPad
-RUN python3 -m pip install .
-
-EXPOSE 8000
+ENV PYTHONPATH=/oopsypad
 
 ENV LC_ALL=en_US.utf-8
 ENV LANG=en_US.utf-8
 
 ENV OOPSY_HOST=http://localhost:8000
+# ENV OOPSY_ENV=dev
 
-RUN dos2unix /OopsyPad/start.sh
+RUN dos2unix /oopsypad/start.sh\
+ /oopsypad/oopsy_run_server.sh\
+ /oopsypad/oopsy_celery_worker.sh\
+ /oopsypad/oopsy_admin.sh\
+ /oopsypad/oopsy_crash_report.sh\
+ /oopsypad/oopsy_symfile.sh
+
+EXPOSE 8000
+
+VOLUME ["/oopsypad/oopsypad/symbols"]
+VOLUME ["/oopsypad/oopsypad/dumps"]
+
 ENTRYPOINT ["/bin/sh"]
-CMD ["/OopsyPad/start.sh"]
+CMD ["/oopsypad/start.sh"]

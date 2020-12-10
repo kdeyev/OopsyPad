@@ -90,3 +90,6 @@ def oopsy_symfile_send(symfile_path, version):
         except ValueError:
             click.echo('Server responded {}: {}'.format(response.status_code,
                                                         response.content))
+                                                        
+if __name__ == '__main__':
+    oopsy_symfile()
