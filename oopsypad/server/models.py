@@ -85,6 +85,8 @@ class Minidump(mongo.Document):
 
     crash_location = fields.StringField()
 
+    signature = fields.StringField()
+
     process_uptime = fields.IntField(default=0)
 
     crash_thread = fields.IntField()
@@ -182,14 +184,7 @@ class Minidump(mongo.Document):
             self.crash_address = crash_info.get('address')
             self.crash_thread = crash_info.get('crashing_thread')
 
-            crashing_thread = self.stacktrace_json.get('crashing_thread')
-            frame = crashing_thread.get('frames')[0]
-            module = frame.get('module')
-            module_offset = frame.get('module_offset')
-            if module and module_offset:
-                self.crash_location = '{} + {}'.format(module, module_offset)
-            else:
-                self.crash_location = self.crash_address
+            self.build_call_stack()
             self.save()
 
             self.parse_process_uptime()
@@ -198,14 +193,63 @@ class Minidump(mongo.Document):
                                          version=self.version,
                                          platform=self.platform,
                                          reason=self.crash_reason,
-                                         location=self.crash_location)
+                                         location=self.crash_location,
+                                         signature=self.signature)
         except (subprocess.CalledProcessError, IndexError) as e:
             current_app.logger.exception(
                 'Cannot parse stacktrace: {}'.format(e))
 
+    def build_call_stack(self):
+        current_app.logger.warning(f"self.stacktrace_json {self.stacktrace_json}")
+
+        crashing_thread = self.stacktrace_json.get('crashing_thread')
+        current_app.logger.warning(f"crashing_thread {crashing_thread}")
+
+        last_call = None
+
+        separator = ""
+        signature = ""
+        if crashing_thread:
+            i = 0
+            for frame in crashing_thread["frames"]:
+                current_app.logger.warning(f"frame {frame}")
+                if i > 20:
+                    break
+
+                fn = None
+                line = None
+                if "function" in frame:
+                    fn = frame["function"]
+
+                if "line" in frame:
+                    line = str(frame["line"])
+                elif "module_offset" in frame:
+                    line = str(frame["module_offset"])
+
+                if last_call is None and fn is not None and line is not None:
+                    last_call = f"{fn}:{line}"
+
+                if fn is None:
+                    fn = "N/A"
+                if line is None:
+                    line = "N/A"
+
+                signature += separator + fn + ":" + line 
+                separator = "-"
+                i = i + 1
+        else:
+            last_call = "N/A : No crashing thread"
+
+        if last_call is None:
+            last_call = "N/A"
+
+        self.crash_location = last_call
+        self.signature = signature
+
+
     def create_stacktrace(self):
         from oopsypad.server.worker import process_minidump
-        process_minidump.delay(str(self.id))
+        process_minidump(str(self.id))
 
     def remove_minidump(self):
         if self.file_path:
@@ -415,12 +459,14 @@ class Issue(mongo.Document):
 
     location = fields.StringField()
 
+    signature = fields.StringField()
+
     total = fields.IntField(default=1)
 
     meta = {
         'indexes': [
             'product',
-            ('product', 'version', 'platform', 'reason', 'location')
+            ('product', 'version', 'platform', 'reason', 'location', 'signature')
         ],
         'ordering': ['-total']
     }
@@ -457,12 +503,13 @@ class Issue(mongo.Document):
 
     @classmethod
     def create_or_update_issue(cls, product, version, platform, reason,
-                               location):
+                               location, signature):
         issue = cls.objects(product=product,
                             version=version,
                             platform=platform,
                             reason=reason,
-                            location=location).first()
+                            location=location,
+                            signature=signature).first()
         if issue:
             issue.total += 1
         else:
