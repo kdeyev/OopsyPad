@@ -9,9 +9,9 @@ from raven.contrib.flask import Sentry
 from oopsypad.server import api, bp, config
 from oopsypad.server.admin import admin
 from oopsypad.server.demo import create_test_users
+from oopsypad.server.filters import add_filters
 from oopsypad.server.models import db
 from oopsypad.server.security import user_datastore, load_security_extensions
-
 
 def create_app(config_name=None):
     if not config_name:
@@ -83,6 +83,9 @@ def create_app(config_name=None):
         if request.path.startswith('/api'):
             return jsonify(error='Internal Server Error'), 500
         return render_template('500.html', error=e)
+
+    # Add jinja filters
+    add_filters(app)
 
     return app
 

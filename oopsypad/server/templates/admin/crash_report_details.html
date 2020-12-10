@@ -35,6 +35,12 @@
                 <td>Date Created:</td>
                 <td id="minidump-last_seen"><b>{{ minidump.date_created.strftime('%d-%m-%Y %H:%M') }}</b></td>
             </tr>
+            {% if minidump.sensitive %}
+            <tr class="info">
+                <td>Exploitability:</td>
+                <td id="minidump-last_seen"><b>{{ minidump.sensitive.exploitability }}</b></td>
+            </tr>
+            {% endif %}
             <tr>
                 <td>Actions:</td>
                 <td>
@@ -74,8 +80,8 @@
                 {% for frame in minidump.stacktrace_json.crashing_thread.frames %}
                     <tr>
                         <td>{{ frame.module }}</td>
-                        <td>{{ frame.function }}</td>
-                        <td>{{ frame.file }}:{{ frame["line"] }}</td>
+                        <td>{{ frame|normalizeFunctionName }}</td>
+                        <td>{{ frame.file|normalizeFilename }}{{ frame|normalizeLine }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -118,8 +124,8 @@
             {% for frame in thread.frames %}
                 <tr>
                     <td>{{ frame.module }}</td>
-                    <td>{{ frame.function }}</td>
-                    <td>{{ frame.file }}:{{ frame["line"] }}</td>
+                    <td>{{ frame|normalizeFunctionName }}</td>
+                    <td>{{ frame.file|normalizeFilename }}{{ frame|normalizeLine }}</td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -128,6 +134,22 @@
         <div class="alert alert-warning">No other threads</div>
         {% endif %}
     {% endfor %}
+
+    <h3>Raw JSON</h3>
+    <div class="table-responsive">
+        <table id="raw-json-table" class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>Raw JSON</th>
+            </tr>
+            </thead>
+                <tr>
+                    <td class="col-stacktrace">
+                        <pre>{{ minidump.stacktrace_json | tojson_pretty }}</pre>
+                    </td>
+                </tr>
+        </table>
+    </div>
 
     <h3>Raw Stack Trace</h3>
     <div class="table-responsive">
