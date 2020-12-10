@@ -202,7 +202,7 @@ class CrashReportView(DeveloperModelView):
     can_create = False
     can_delete = False
     can_edit = False
-    column_display_actions = False
+    can_view_details = True
     column_filters = (
         'product',
         'version',
@@ -233,6 +233,23 @@ class CrashReportView(DeveloperModelView):
         response = make_response(file)
         response.mimetype = 'application/octet-stream'
         return response
+
+    @expose('/details/')
+    def details_view(self):
+        minidump_id = request.args.get('id')
+        if not minidump_id or not ObjectId.is_valid(minidump_id):
+            flash('Invalid request')
+            return redirect(self.get_url('.index_view'))
+
+        minidump = models.Minidump.objects(id=minidump_id).first()
+        if not minidump:
+            flash('Issue not found.')
+            return redirect(self.get_url('.index_view'))
+
+        return self.render('admin/crash_report_details.html',
+                           minidump=minidump,
+                           column_details_list=self.column_details_list,
+                           )
 
 
 class IssueView(DeveloperModelView):

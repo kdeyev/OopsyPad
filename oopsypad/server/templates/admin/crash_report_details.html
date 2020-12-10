@@ -1,0 +1,64 @@
+{% extends 'admin/model/details.html' %}
+
+{% block body %}
+    <style>
+        pre {
+            background-color: transparent;
+            border: none;
+
+        }
+    </style>
+    <h3>Crash Report Details</h3>
+    <table id="minidump-details-table" class="table table-hover">
+        <tbody>
+            <tr>
+                <td>Product:</td>
+                <td id="minidump-product"><b>{{ minidump.product }}</b></td>
+            </tr>
+            <tr>
+                <td>Version:</td>
+                <td id="minidump-version"><b>{{ minidump.version }}</b></td>
+            </tr>
+            <tr>
+                <td>Platform:</td>
+                <td id="minidump-platform"><b>{{ minidump.platform }}</b></td>
+            </tr>
+            <tr class="info">
+                <td>Reason:</td>
+                <td id="minidump-reason"><b>{{ minidump.crash_reason }}</b></td>
+            </tr>
+            <tr>
+                <td>Location:</td>
+                <td id="minidump-location"><b>{{ minidump.crash_location }}</b></td>
+            </tr>
+            <tr>
+                <td>Date Created:</td>
+                <td id="minidump-last_seen"><b>{{ minidump.date_created.strftime('%d-%m-%Y %H:%M') }}</b></td>
+            </tr>
+            <tr>
+                <td>Actions:</td>
+                <td>
+                    <a href="{{ minidump.download_link }}" class="btn btn-default">Download Minidump</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Stack Trace</h3>
+    <div class="table-responsive">
+        <table id="stacktraces-table" class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>Stack Trace</th>
+            </tr>
+            </thead>
+            
+                <tr>
+                    <td class="col-stacktrace">
+                        <pre title="Click to expand/collapse">{{ minidump.stacktrace }}</pre>
+                    </td>
+
+                </tr>
+        </table>
+    </div>
+{% endblock %}
