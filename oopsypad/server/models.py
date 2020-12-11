@@ -292,11 +292,7 @@ class Minidump(mongo.Document):
                 'Cannot parse stacktrace: {}'.format(e))
 
     def build_call_stack(self):
-        current_app.logger.warning(f"self.stacktrace_json {self.stacktrace_json}")
-
         crashing_thread = self.stacktrace_json.get('crashing_thread')
-        current_app.logger.warning(f"crashing_thread {crashing_thread}")
-
         last_call = None
 
         separator = ""
@@ -304,7 +300,6 @@ class Minidump(mongo.Document):
         if crashing_thread:
             i = 0
             for frame in crashing_thread["frames"]:
-                current_app.logger.warning(f"frame {frame}")
                 if i > 20:
                     break
 
