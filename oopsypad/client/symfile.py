@@ -91,5 +91,37 @@ def oopsy_symfile_send(symfile_path, version):
             click.echo('Server responded {}: {}'.format(response.status_code,
                                                         response.content))
                                                         
+
+@oopsy_symfile.command(name='push')
+@click.argument('bin-path')
+@click.argument('version')
+def oopsy_symfile_push(bin_path, version):
+    """
+    \b
+    BIN-PATH
+        Product executable binary path.
+    VERSION
+        Product version.
+    """
+    try:
+        symfile_name = os.path.splitext(os.path.basename(bin_path))[0] + ".sym"
+        symfile_path = create_symfile(bin_path, symfile_name, os.getcwd())
+        response = send_symfile(symfile_path, get_address(), version)
+        os.remove(symfile_path)
+    except Exception as e:
+        click.echo('Unable to push symfile: %s' % e)
+        return
+    if response.status_code == 201:
+        click.echo(response.json().get('ok', 'OK'))
+    elif response.status_code == 403:
+        click.echo(response.reason.capitalize())
+    else:
+        try:
+            click.echo(response.json().get('error', 'ERROR'))
+        except ValueError:
+            click.echo('Server responded {}: {}'.format(response.status_code,
+                                                        response.content))
+                                                        
+
 if __name__ == '__main__':
     oopsy_symfile()
