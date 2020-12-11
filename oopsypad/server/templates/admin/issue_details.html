@@ -8,15 +8,6 @@
 
         }
 
-        .stacktrace {
-            max-height: 100px;
-            overflow-y: scroll;
-            cursor: pointer;
-        }
-
-        .stacktrace.expanded {
-            max-height: none;
-        }
     </style>
     <h3>Issue Details</h3>
     <table id="issue-details-table" class="table table-hover">
@@ -73,7 +64,6 @@
                 <th>Reason</th>
                 <th>Location</th>
                 <th>Actions</th>
-                <th>Stack Trace</th>
             </tr>
             </thead>
             {% for minidump in minidumps.items %}
@@ -87,9 +77,6 @@
                     <td>
                         <p><a href="{{ minidump.download_link }}" class="btn btn-default">Download Minidump</a></p>
                         <p><a href="{{ minidump.details_link }}" class="btn btn-default">View</a></p>
-                    </td>
-                    <td class="col-stacktrace">
-                        <pre class="stacktrace" title="Click to expand/collapse">{{ minidump.stacktrace }}</pre>
                     </td>
                 </tr>
             {% else %}
@@ -134,14 +121,4 @@
     {% endmacro %}
 
     {{ render_navigation(minidumps, 'issue.details_view') }}
-
-    {% block tail %}
-        {{ super() }}
-        <script>
-            $('.stacktrace').click(function () {
-                console.log($(this));
-                $(this).toggleClass('expanded');
-            });
-        </script>
-    {% endblock %}
 {% endblock %}
