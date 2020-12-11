@@ -9,12 +9,15 @@ def add_filters(app):
 
     @app.template_filter("normalizeFilename")
     def normalizeFilename(value):
-        filename = "N/A"
-
         if isinstance(value, str) :
-            filename = value.rsplit("/", 1)[1]
+            if "/" in value:
+                return value.rsplit("/", 1)[1]
+            elif "\\" in value:
+                 return value.rsplit("\\", 1)[1]
+            else:
+                return value
 
-        return filename
+        return "N/A"
 
     @app.template_filter("normalizeLine")
     def normalizeLine(frame):
