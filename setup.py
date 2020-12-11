@@ -1,43 +1,71 @@
 from setuptools import find_packages, setup
 import sys
 
-assert sys.version_info >= (3,), 'Python 3 is required'
+assert sys.version_info >= (3,), "Python 3 is required"
 
-VERSION = '0.2.1-alpha'
+VERSION = "0.2.1-alpha"
 
 setup(
-    name='oopsypad',
+    name="oopsypad",
     version=VERSION,
-    description='Breakpad minidump processing tool.',
-    license='GPLv3',
+    description="Breakpad minidump processing tool.",
+    license="GPLv3",
     install_requires=[
-        'flask',
-        'flask-admin',
-        'flask-mongoengine',
-        'flask-httpauth',
-        'flask-security',
-        'redis',
-        'celery==4.4.7',
-        'python-dateutil',
-        'gunicorn',
-        'requests',
-        'raven',
-        'email_validator',
+        "amqp==2.6.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
+        "babel==2.9.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+        "billiard==3.6.3.0",
+        "blinker==1.4",
+        "celery==4.4.7",
+        "certifi==2020.12.5",
+        "chardet==3.0.4",
+        "click==7.1.2",
+        "dnspython==2.0.0; python_version >= '3.6'",
+        "email-validator==1.1.2",
+        "flask==1.1.2",
+        "flask-admin==1.5.7",
+        "flask-babelex==0.9.4",
+        "flask-httpauth==4.2.0",
+        "flask-login==0.5.0",
+        "flask-mail==0.9.1",
+        "flask-mongoengine==1.0.0",
+        "flask-principal==0.4.0",
+        "flask-security==3.0.0",
+        "flask-wtf==0.14.3",
+        "gunicorn==20.0.4",
+        "idna==2.10; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+        "importlib-metadata==3.1.1; python_version < '3.8'",
+        "itsdangerous==1.1.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+        "jinja2==2.11.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
+        "kombu==4.6.11; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
+        "markupsafe==1.1.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+        "mongoengine==0.21.0; python_version >= '3.5'",
+        "passlib==1.7.4",
+        "pymongo==3.11.2",
+        "python-dateutil==2.8.1",
+        "pytz==2020.4",
+        "raven==6.10.0",
+        "redis==3.5.3",
+        "requests==2.25.0",
+        "six==1.15.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+        "speaklater==1.3",
+        "urllib3==1.26.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'",
+        "vine==1.3.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+        "werkzeug==1.0.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
+        "wtforms[email]==2.3.3",
+        "zipp==3.4.0; python_version >= '3.6'",
     ],
-    tests_require=[
-        'selenium',
-        'flask-testing',
-    ],
-    test_suite='oopsypad.tests',
+    tests_require=["selenium", "flask-testing",],
+    test_suite="oopsypad.tests",
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
     entry_points={
-        'console_scripts':
-            ['oopsy_run_server = oopsypad.server.run:oopsy_run_server',
-             'oopsy_celery_worker = oopsypad.server.worker:oopsy_celery_worker',
-             'oopsy_symfile = oopsypad.client.symfile:oopsy_symfile',
-             'oopsy_crash_report = oopsypad.client.minidump:oopsy_crash_report',
-             'oopsy_admin = oopsypad.client.admin:oopsy_admin']
-    }
+        "console_scripts": [
+            "oopsy_run_server = oopsypad.server.run:oopsy_run_server",
+            "oopsy_celery_worker = oopsypad.server.worker:oopsy_celery_worker",
+            "oopsy_symfile = oopsypad.client.symfile:oopsy_symfile",
+            "oopsy_crash_report = oopsypad.client.minidump:oopsy_crash_report",
+            "oopsy_admin = oopsypad.client.admin:oopsy_admin",
+        ]
+    },
 )

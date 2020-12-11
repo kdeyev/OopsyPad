@@ -1,0 +1,25 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+click = "*"
+flask = "*"
+flask-admin = "*"
+flask-mongoengine = "*"
+flask-httpauth = "*"
+flask-security = "*"
+redis = "*"
+celery = "==4.4.7"
+python-dateutil = "*"
+gunicorn = "*"
+requests = "*"
+email-validator = "*"
+raven = "*"
+
+[dev-packages]
+pipenv-setup = "*"
+
+[requires]
+python_version = "3.6"
