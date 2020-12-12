@@ -12,7 +12,7 @@ from flask import current_app, url_for
 from flask_mongoengine import MongoEngine, BaseQuerySet
 from flask_security import UserMixin, RoleMixin
 import mongoengine as mongo
-from mongoengine import fields, EmbeddedDocument
+from mongoengine import fields, EmbeddedDocument, GridFSProxy
 from mongoengine.queryset.visitor import Q
 from werkzeug.utils import secure_filename
 
@@ -158,8 +158,6 @@ class Minidump(mongo.Document):
 
     attachments = fields.ListField(fields.EmbeddedDocumentField(Attachment))
 
-    file_path = fields.StringField()
-
     stacktrace = fields.StringField()
 
     stacktrace_json = fields.DictField()
@@ -213,6 +211,11 @@ class Minidump(mongo.Document):
         return url_for('crash-reports.details_view',
                        id=self.id)
 
+    @property
+    def minidump_content(self):
+        file_proxy = GridFSProxy(self.minidump.grid_id)
+        return file_proxy.read()
+
     def save_minidump_file(self, minidump_file, attachments):
         if not os.path.isdir(DUMPS_DIR):
             os.makedirs(DUMPS_DIR)
@@ -225,7 +228,7 @@ class Minidump(mongo.Document):
                     self.minidump.replace(minidump)
                 else:
                     self.minidump.put(minidump)
-            self.file_path = target_path
+            os.remove(target_path)
 
             for name in attachments:
                 attachment_file = attachments[name]
@@ -247,7 +250,9 @@ class Minidump(mongo.Document):
         return os.path.join(DUMPS_DIR, self.filename)
 
     def get_stacktrace(self):
-        minidump_path = self.file_path
+        minidump_path = next(tempfile._get_candidate_names())
+        with open(minidump_path, 'wb') as minidump:
+            minidump.write(self.minidump_content)
         try:
             minidump_stackwalk_output = subprocess.check_output(
                 [Config.MINIDUMP_STACKWALK, minidump_path, SYMFILES_DIR],
@@ -257,6 +262,8 @@ class Minidump(mongo.Document):
         except subprocess.CalledProcessError as e:
             current_app.logger.exception(
                 'Cannot get stacktrace: {}'.format(e))
+        finally:
+            os.remove(minidump_path)
 
     def parse_process_uptime(self):
         line_start = 'Process uptime: '
@@ -283,7 +290,9 @@ class Minidump(mongo.Document):
                 'Cannot parse process uptime: {}'.format(e))
 
     def parse_stacktrace(self):
-        minidump_path = self.file_path
+        minidump_path = next(tempfile._get_candidate_names())
+        with open(minidump_path, 'wb') as minidump:
+            minidump.write(self.minidump_content)
         try:
             stackwalker_output = subprocess.check_output(
                 [Config.STACKWALKER, '--pretty', minidump_path, SYMFILES_DIR],
@@ -318,6 +327,8 @@ class Minidump(mongo.Document):
         except (subprocess.CalledProcessError, IndexError) as e:
             current_app.logger.exception(
                 'Cannot parse stacktrace: {}'.format(e))
+        finally:
+            os.remove(minidump_path)
 
     def build_call_stack(self):
         crashing_thread = self.stacktrace_json.get('crashing_thread')
@@ -365,15 +376,7 @@ class Minidump(mongo.Document):
         from oopsypad.server.worker import process_minidump
         process_minidump(str(self.id))
 
-    def remove_minidump(self):
-        if self.file_path:
-            if os.path.isfile(self.file_path):
-                try:
-                    os.remove(self.file_path)
-                except OSError as e:
-                    current_app.logger.exception(
-                        'Cannot remove minidump: {}'.format(e))
-        
+    def remove_minidump(self):      
         if self.minidump:
             self.minidump.delete()
             self.save()
