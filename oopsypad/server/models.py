@@ -5,13 +5,14 @@ import hashlib
 import hmac
 import json
 import os
+import tempfile
 import subprocess
 
 from flask import current_app, url_for
 from flask_mongoengine import MongoEngine, BaseQuerySet
 from flask_security import UserMixin, RoleMixin
 import mongoengine as mongo
-from mongoengine import fields
+from mongoengine import fields, EmbeddedDocument
 from mongoengine.queryset.visitor import Q
 from werkzeug.utils import secure_filename
 
@@ -140,6 +141,9 @@ class Issue(mongo.Document):
             self.location, self.total,
             self.last_seen.strftime('%d-%m-%Y %H:%M'))
 
+class Attachment(EmbeddedDocument):
+    name = fields.StringField()
+    content = fields.FileField()
 
 class Minidump(mongo.Document):
     product = fields.StringField()  # Crashed application name
@@ -151,6 +155,8 @@ class Minidump(mongo.Document):
     filename = fields.StringField()
 
     minidump = fields.FileField()  # Google Breakpad minidump
+
+    attachments = fields.ListField(fields.EmbeddedDocumentField(Attachment))
 
     file_path = fields.StringField()
 
@@ -193,11 +199,21 @@ class Minidump(mongo.Document):
                        minidump_id=str(self.minidump.grid_id))
 
     @property
+    def attachments_links(self):
+        attachments = {}
+        for attachment in self.attachments:
+            name = str(attachment.name)
+            url = url_for('crash-reports.download_minidump',
+                        minidump_id=str(attachment.content.grid_id))
+            attachments[name] = url
+        return attachments
+
+    @property
     def details_link(self):
         return url_for('crash-reports.details_view',
                        id=self.id)
 
-    def save_minidump_file(self, minidump_file):
+    def save_minidump_file(self, minidump_file, attachments):
         if not os.path.isdir(DUMPS_DIR):
             os.makedirs(DUMPS_DIR)
         try:
@@ -210,6 +226,18 @@ class Minidump(mongo.Document):
                 else:
                     self.minidump.put(minidump)
             self.file_path = target_path
+
+            for name in attachments:
+                attachment_file = attachments[name]
+                attachment_path = next(tempfile._get_candidate_names())
+                attachment_file.save(attachment_path)
+                with open(attachment_path, 'rb') as attachment_file:
+                    attachment = Attachment()
+                    attachment.name = name
+                    attachment.content.put(attachment_file)
+                    self.attachments.append(attachment)
+                os.remove(attachment_path)
+
             self.save()
         except Exception as e:
             current_app.logger.exception(
@@ -345,9 +373,15 @@ class Minidump(mongo.Document):
                 except OSError as e:
                     current_app.logger.exception(
                         'Cannot remove minidump: {}'.format(e))
+        
         if self.minidump:
             self.minidump.delete()
             self.save()
+
+        for attachment in self.attachments:
+            attachment.content.delete()
+
+        self.save()
         self.delete()
 
     def get_time(self):
@@ -358,13 +392,13 @@ class Minidump(mongo.Document):
         return cls.objects(id=minidump_id).first()
 
     @classmethod
-    def create_minidump(cls, product, version, platform, minidump_file):
+    def create_minidump(cls, product, version, platform, minidump_file, attachments):
         minidump = cls(product=product,
                        version=version,
                        platform=platform,
                        date_created=datetime.now())
 
-        minidump.save_minidump_file(minidump_file)
+        minidump.save_minidump_file(minidump_file, attachments)
         minidump.create_stacktrace()
         return minidump
 

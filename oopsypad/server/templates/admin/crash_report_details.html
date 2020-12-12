@@ -55,6 +55,9 @@
                 <td>
                     <a href="{{ minidump.download_link }}" class="btn btn-default">Download Minidump</a>
                 </td>
+                {% for name, url in minidump.attachments_links.items() %}
+                    <td><a href="{{ url }}" class="btn btn-default">Download {{name}}</a></td>
+                {% endfor %}
             </tr>
         </tbody>
     </table>

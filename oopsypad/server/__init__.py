@@ -11,6 +11,7 @@ from oopsypad.server.forms import AdminRegisterForm
 
 bp = Blueprint('public', __name__)
 
+MINIDUMP_KEY = 'upload_file_minidump'
 
 def client_error(error):
     return jsonify(error=error), 400
@@ -38,9 +39,14 @@ def crash_report():
     if not platform:
         return client_error('Product platform is required.')
 
-    minidump = request.files.get('upload_file_minidump')
+    minidump = request.files.get(MINIDUMP_KEY)
     if not minidump:
         return client_error('Minidump file is required.')
+
+    attachments = {}
+    for key in request.files:
+        if key != MINIDUMP_KEY:
+            attachments[key] = request.files[key]
 
     project = models.Project.objects(name=product).first()
     if not project:
@@ -59,7 +65,8 @@ def crash_report():
         models.Minidump.create_minidump(product=product,
                                         version=version,
                                         platform=platform,
-                                        minidump_file=minidump)
+                                        minidump_file=minidump,
+                                        attachments=attachments)
     except Exception as e:
         error = 'Cannot save crash report: {}'.format(e)
         current_app.logger.exception(error)
