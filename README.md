@@ -1,10 +1,34 @@
 # OopsyPad 
 [![Build Status](https://travis-ci.org/RedisDesktop/OopsyPad.svg?branch=master)](https://travis-ci.org/RedisDesktop/OopsyPad)
 
-[TOC]
-
 ### Be aware of your apps' Oopsies.
 OopsyPad is a Breakpad minidumps processing tool for [RedisDesktopManager](https://github.com/uglide/RedisDesktopManager).
+
+## Demo
+
+### Issues
+![Issues](/images/issues.png)
+
+### Issue Details
+![Issue Details](/images/issue-details.png)
+
+### Reports
+![Reports](/images/reports.png)
+
+### Crash Report Details
+![Crash Report Details](/images/crash-report-details.png)
+
+### Symbols
+![Symbols](/images/symbols.png)
+
+### Symbol Details
+![Symbol Details](/images/symbol-details.png)
+
+### Users
+![Users](/images/users.png)
+
+### New User
+![New User](/images/new-user.png)
 
 ## Requirements
 ### Server:
@@ -163,29 +187,3 @@ For updating the dependencies from Pipfile to Docker requirements.txt and setup.
 ```shell
 sh sync-dependencies.sh
 ```
-
-## Demo
-
-### Issues
-![Issues](/images/issues.png)
-
-### Issue Details
-![Issue Details](/images/issue-details.png)
-
-### Reports
-![Reports](/images/reports.png)
-
-### Crash Report Details
-![Crash Report Details](/images/crash-report-details.png)
-
-### Symbols
-![Symbols](/images/symbols.png)
-
-### Symbol Details
-![Symbol Details](/images/symbol-details.png)
-
-### Users
-![Users](/images/users.png)
-
-### New User
-![New User](/images/new-user.png)
