@@ -1,6 +1,8 @@
 # OopsyPad 
 [![Build Status](https://travis-ci.org/RedisDesktop/OopsyPad.svg?branch=master)](https://travis-ci.org/RedisDesktop/OopsyPad)
 
+[TOC]
+
 ### Be aware of your apps' Oopsies.
 OopsyPad is a Breakpad minidumps processing tool for [RedisDesktopManager](https://github.com/uglide/RedisDesktopManager).
 
@@ -140,3 +142,50 @@ Required arguments are:
 - `version` - product version
 - `platform` - platform where the crash has occurred
 - `upload_file_minidump` - path to the minidump file
+
+## Docker-compose
+
+For running the OopsyPad with docker-compose:
+```shell
+docker-compose build
+docker-compose up
+```
+
+## Pipenv
+
+For setting virtual environment with Pipenv:
+```shell
+export PIPENV_VENV_IN_PROJECT=1
+pipenv install --dev
+```
+
+For updating the dependencies from Pipfile to Docker requirements.txt and setup.py:
+```shell
+sh sync-dependencies.sh
+```
+
+## Demo
+
+### Issues
+![Issues](/images/issues.png)
+
+### Issue Details
+![Issue Details](/images/issue-details.png)
+
+### Reports
+![Reports](/images/reports.png)
+
+### Crash Report Details
+![Crash Report Details](/images/crash-report-details.png)
+
+### Symbols
+![Symbols](/images/symbols.png)
+
+### Symbol Details
+![Symbol Details](/images/symbol-details.png)
+
+### Users
+![Users](/images/users.png)
+
+### New User
+![New User](/images/new-user.png)
